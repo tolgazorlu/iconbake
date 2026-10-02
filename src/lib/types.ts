@@ -50,6 +50,7 @@ export interface IconState {
   shape: Shape;
   radius: number; // % for "rounded", 0–50
   badge: string;
+  appName: string; // web manifest name; falls back to filename
   filename: string;
   platforms: Platform[];
   activePlatform: Platform;
@@ -90,6 +91,7 @@ export const DEFAULT_STATE: IconState = {
   shape: "squircle",
   radius: 22,
   badge: "",
+  appName: "",
   filename: "ic_launcher",
   platforms: ["android", "ios", "web"],
   activePlatform: "ios",

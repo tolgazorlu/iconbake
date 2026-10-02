@@ -142,6 +142,8 @@ async function macosFiles(state: IconState): Promise<Files> {
 
 async function webFiles(state: IconState): Promise<Files> {
   const files: Files = {};
+  const appName = state.appName?.trim() || state.filename;
+  const themeColor = dominantColor(state.bg);
   const svg = compose(state, { platform: "web", size: 512 }).svg;
   const maskable = compose({ ...state, shape: "square", fg: { ...state.fg, padding: Math.max(state.fg.padding, 20) } }, { platform: "png", size: 512 }).svg;
   for (const s of [16, 32, 48, 180, 192, 512]) {
@@ -154,15 +156,15 @@ async function webFiles(state: IconState): Promise<Files> {
   files["web/manifest.webmanifest"] = strToU8(
     JSON.stringify(
       {
-        name: state.filename,
-        short_name: state.filename,
+        name: appName,
+        short_name: appName,
         icons: [
           { src: "icon-192.png", sizes: "192x192", type: "image/png" },
           { src: "icon-512.png", sizes: "512x512", type: "image/png" },
           { src: "maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
-        theme_color: state.bg.type === "color" ? state.bg.color : "#000000",
-        background_color: "#ffffff",
+        theme_color: themeColor,
+        background_color: themeColor,
         display: "standalone",
       },
       null,
@@ -213,6 +215,14 @@ async function ico(pngs: Uint8Array[], sizes: number[]): Promise<Uint8Array> {
     off += p.length;
   });
   return out;
+}
+
+/** The color that best stands for the background, for manifest theme/background colors. */
+function dominantColor(bg: Background) {
+  if (bg.type === "color") return bg.color;
+  if (bg.type === "gradient") return bg.gradient.from;
+  if (bg.type === "mesh") return bg.mesh.colors[0];
+  return "#000000";
 }
 
 function darkenBackground(bg: Background): Background {

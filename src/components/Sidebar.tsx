@@ -233,6 +233,9 @@ export function Sidebar() {
       </Section>
 
       <Section title="Export">
+        <Row label="App name">
+          <input className="input" value={state.appName} placeholder={state.filename} onChange={(e) => set({ appName: e.target.value })} />
+        </Row>
         <Row label="Filename">
           <input className="input" value={state.filename} onChange={(e) => set({ filename: e.target.value.replace(/[^a-zA-Z0-9_-]/g, "") })} spellCheck={false} />
         </Row>
