@@ -292,6 +292,12 @@ export function compose(state: IconState, opts: ComposeOptions = {}): Composed {
   // Adaptive: bg layer = full bleed, no mask. fg layer = transparent + icon.
   if (adaptive) {
     if (opts.layer === "background") {
+      // Launchers expect an opaque background layer; with no background, use a fill that
+      // contrasts with the glyph instead of leaving it transparent.
+      if (state.bg.type === "none") {
+        const fill = luminance(state.fg.color) > 0.5 ? "#000000" : "#ffffff";
+        parts.push(`<rect width="${size}" height="${size}" fill="${fill}"/>`);
+      }
       parts.push(bgR.body, tex.fill);
     } else if (opts.layer === "foreground") {
       parts.push(fgR.body);
