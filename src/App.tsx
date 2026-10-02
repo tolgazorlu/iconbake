@@ -24,30 +24,6 @@ export default function App() {
     document.documentElement.dataset.theme = state.theme;
   }, [state.theme]);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const mod = e.metaKey || e.ctrlKey;
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (["INPUT", "TEXTAREA", "SELECT"].includes(tag)) return;
-      if (mod && e.key === "z" && !e.shiftKey) {
-        e.preventDefault();
-        undo();
-      } else if (mod && (e.key === "Z" || (e.key === "z" && e.shiftKey) || e.key === "y")) {
-        e.preventDefault();
-        redo();
-      } else if (mod && e.key === "s") {
-        e.preventDefault();
-        download();
-      } else if (mod && e.key === "c" && !window.getSelection()?.toString()) {
-        // Copy the icon only when no text is selected, so ⌘C still copies selected text.
-        e.preventDefault();
-        copy();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  });
-
   const flash = (m: string) => {
     setToast(m);
     setTimeout(() => setToast(null), 1800);
@@ -74,6 +50,30 @@ export default function App() {
       flash("Clipboard blocked");
     }
   };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(tag)) return;
+      if (mod && e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      } else if (mod && (e.key === "Z" || (e.key === "z" && e.shiftKey) || e.key === "y")) {
+        e.preventDefault();
+        redo();
+      } else if (mod && e.key === "s") {
+        e.preventDefault();
+        download();
+      } else if (mod && e.key === "c" && !window.getSelection()?.toString()) {
+        // Copy the icon only when no text is selected, so ⌘C still copies selected text.
+        e.preventDefault();
+        copy();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   const saveProject = () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
