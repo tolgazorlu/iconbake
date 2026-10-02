@@ -162,6 +162,12 @@ export function iconifyApi(): Plugin {
 
         if (url.pathname === "/api/dump" && req.method === "POST") {
           // Dev-only helper: save a posted file to the scratch dir so exports can be verified from the CLI.
+          // Any web page can fire a simple cross-origin POST at localhost, so only accept requests from
+          // the app itself (or from tools that send no Origin, like curl).
+          const origin = req.headers.origin;
+          if (origin && URL.parse(origin)?.host !== req.headers.host) {
+            return send(res, 403, { error: "cross-origin dump refused" });
+          }
           const chunks: Buffer[] = [];
           req.on("data", (c: Buffer) => chunks.push(c));
           req.on("end", () => {
