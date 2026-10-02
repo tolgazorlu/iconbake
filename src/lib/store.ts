@@ -56,6 +56,11 @@ export const useStore = create<Store>()(
     {
       name: "icony:v1",
       partialize: (s) => ({ state: s.state }),
+      // Fill fields added after the state was first persisted.
+      merge: (persisted, current) => {
+        const saved = (persisted as { state?: Partial<IconState> } | undefined)?.state;
+        return saved ? { ...current, state: { ...DEFAULT_STATE, ...saved } } : current;
+      },
     },
   ),
 );

@@ -4,7 +4,7 @@ import { Stage } from "./components/Stage";
 import { Icons } from "./components/ui";
 import { buildZip, copyPng, downloadBlob, downloadSingle } from "./lib/export";
 import { useStore } from "./lib/store";
-import type { IconState } from "./lib/types";
+import { DEFAULT_STATE, type IconState } from "./lib/types";
 
 export default function App() {
   const state = useStore((s) => s.state);
@@ -85,7 +85,7 @@ export default function App() {
       try {
         const s = JSON.parse(t) as IconState;
         if (s && s.fg && s.bg) {
-          replace(s);
+          replace({ ...DEFAULT_STATE, ...s });
           // Older exports stripped uploaded images from the project file.
           const missing = (s.fg.source.kind === "image" && !s.fg.source.dataUrl) || (s.bg.type === "image" && !s.bg.image?.dataUrl);
           flash(missing ? "Project loaded, but its uploaded image is missing: upload it again" : "Project loaded");
