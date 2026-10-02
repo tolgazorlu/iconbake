@@ -1,6 +1,6 @@
 import { zipSync, strToU8 } from "fflate";
 import { compose, composeGlyph } from "./compose";
-import type { IconState, Platform } from "./types";
+import type { Background, IconState, Platform } from "./types";
 
 export async function svgToPng(svg: string, size: number): Promise<Uint8Array> {
   const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
@@ -80,11 +80,9 @@ async function iosFiles(state: IconState): Promise<Files> {
   const square = { ...state, shape: "square" as const };
   const svg = compose(square, { platform: "png", size: 1024 }).svg;
   files["ios/AppIcon.appiconset/AppIcon.png"] = await svgToPng(svg, 1024);
-  // Dark: same icon on deepened background (bg darkened when it's a flat color)
-  const darkState: IconState =
-    state.bg.type === "color"
-      ? { ...square, bg: { ...state.bg, color: darken(state.bg.color) } }
-      : square;
+  // Dark: same icon on a deepened background. Flat, gradient and mesh fills are all darkened;
+  // an image background is left as is because there is no color to shift.
+  const darkState: IconState = { ...square, bg: darkenBackground(state.bg) };
   files["ios/AppIcon.appiconset/AppIcon-Dark.png"] = await svgToPng(compose(darkState, { platform: "png", size: 1024 }).svg, 1024);
   // Tinted: grayscale glyph on transparent (system applies tint)
   const tinted: IconState = {
@@ -215,6 +213,15 @@ async function ico(pngs: Uint8Array[], sizes: number[]): Promise<Uint8Array> {
     off += p.length;
   });
   return out;
+}
+
+function darkenBackground(bg: Background): Background {
+  return {
+    ...bg,
+    color: darken(bg.color),
+    gradient: { ...bg.gradient, from: darken(bg.gradient.from), to: darken(bg.gradient.to) },
+    mesh: { ...bg.mesh, colors: bg.mesh.colors.map(darken) },
+  };
 }
 
 function darken(hex: string) {
