@@ -244,18 +244,11 @@ export async function buildZip(state: IconState, onProgress?: (label: string) =>
   if (p.has("macos")) await add("macOS", () => macosFiles(state));
   if (p.has("web")) await add("Web", () => webFiles(state));
   if (p.has("png")) await add("PNG/SVG", () => pngFiles(state));
-  files["icony.json"] = strToU8(JSON.stringify(stripImages(state), null, 2));
+  // Keep uploaded images embedded so the project reopens exactly as exported.
+  files["icony.json"] = strToU8(JSON.stringify(state, null, 2));
   onProgress?.("Zipping");
   const zipped = zipSync(files, { level: 6 });
   return new Blob([zipped as BlobPart], { type: "application/zip" });
-}
-
-function stripImages(state: IconState): IconState {
-  // Keep the project file small: drop embedded data URLs.
-  const s = structuredClone(state);
-  if (s.fg.source.kind === "image") s.fg.source = { ...s.fg.source, dataUrl: "" };
-  if (s.bg.image) s.bg.image = null;
-  return s;
 }
 
 export async function downloadSingle(state: IconState, kind: "png" | "svg", size = 1024) {
