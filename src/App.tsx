@@ -38,7 +38,8 @@ export default function App() {
       } else if (mod && e.key === "s") {
         e.preventDefault();
         download();
-      } else if (mod && e.key === "c") {
+      } else if (mod && e.key === "c" && !window.getSelection()?.toString()) {
+        // Copy the icon only when no text is selected, so ⌘C still copies selected text.
         e.preventDefault();
         copy();
       }
