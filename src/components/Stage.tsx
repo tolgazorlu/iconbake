@@ -170,13 +170,22 @@ function AndroidPreview() {
           ["Monochrome", mono],
         ].map(([label, s]) => (
           <figure key={label} style={{ margin: 0, display: "grid", gap: 6, justifyItems: "center", color: "var(--text-3)", fontSize: 11 }}>
-            <Svg html={s} size={108} className="checker" style={{ borderRadius: 8, outline: "1px dashed var(--sep)" }} />
+            <div style={{ position: "relative", lineHeight: 0 }}>
+              <Svg html={s} size={108} className="checker" style={{ borderRadius: 8, outline: "1px dashed var(--sep)" }} />
+              {label === "Foreground" && (
+                // 66dp safe zone of the 108dp layer: anything outside may be cut by the launcher mask.
+                <div
+                  aria-hidden
+                  style={{ position: "absolute", inset: `${((108 - 66) / 2 / 108) * 100}%`, borderRadius: "50%", border: "1px dashed var(--text-3)", pointerEvents: "none" }}
+                />
+              )}
+            </div>
             <figcaption>{label}</figcaption>
           </figure>
         ))}
       </div>
       <div className="hint" style={{ textAlign: "center", maxWidth: 360 }}>
-        Adaptive layers are 108dp; the launcher shows the inner 72dp. Dashed box is the full layer.
+        Adaptive layers are 108dp; the launcher shows the inner 72dp. Keep the glyph inside the dashed circle (66dp safe zone) so no mask cuts it.
       </div>
     </div>
   );
