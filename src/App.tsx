@@ -86,7 +86,11 @@ export default function App() {
         const s = JSON.parse(t) as IconState;
         if (s && s.fg && s.bg) {
           replace(s);
-          flash("Project loaded");
+          // Older exports stripped uploaded images from the project file.
+          const missing = (s.fg.source.kind === "image" && !s.fg.source.dataUrl) || (s.bg.type === "image" && !s.bg.image?.dataUrl);
+          flash(missing ? "Project loaded, but its uploaded image is missing: upload it again" : "Project loaded");
+        } else {
+          flash("Invalid project file");
         }
       } catch {
         flash("Invalid project file");
