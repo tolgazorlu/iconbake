@@ -160,7 +160,7 @@ export const AI_STYLES: AiStyle[] = [
   },
   {
     id: "metal",
-    label: "Machined metal",
+    label: "Metal",
     hint: "Brushed aluminium with an engraved symbol",
     render:
       "precision machined brushed aluminium with a deeply engraved and slightly inset symbol, chamfered edges catching light, skeuomorphic tool-like realism",

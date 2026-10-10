@@ -225,7 +225,7 @@ function safeItemPath(id: string) {
 
 function guard(res: ServerResponse, key: Key, usd: number) {
   if (!key) {
-    send(res, 412, { error: "FAL_KEY is not set. Add FAL_KEY=... to icony/.env.local (or ~/.hermes/.env) and restart pnpm dev." });
+    send(res, 412, { error: "FAL_KEY is not set. Add FAL_KEY=... to icony/.env.local (or ~/.hermes/.env). It is read on every request, no restart needed." });
     return false;
   }
   const s = spent(history());
