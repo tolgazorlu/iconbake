@@ -2,7 +2,10 @@ import { zipSync, strToU8 } from "fflate";
 import { compose, composeGlyph } from "./compose";
 import type { Background, IconState, Platform } from "./types";
 
-export async function svgToPng(svg: string, size: number): Promise<Uint8Array> {
+export type Rasterizer = (svg: string, size: number) => Promise<Uint8Array>;
+
+/** Browser rasterizer: decode the SVG as an image and draw it on a canvas. */
+export async function browserSvgToPng(svg: string, size: number): Promise<Uint8Array> {
   const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   try {
@@ -25,6 +28,17 @@ export async function svgToPng(svg: string, size: number): Promise<Uint8Array> {
   } finally {
     URL.revokeObjectURL(url);
   }
+}
+
+let raster: Rasterizer = browserSvgToPng;
+
+/** Swap the rasterizer, e.g. resvg on the dev server for headless exports. */
+export function setRasterizer(fn: Rasterizer) {
+  raster = fn;
+}
+
+export function svgToPng(svg: string, size: number) {
+  return raster(svg, size);
 }
 
 // Fonts in <text> inside an <img>-decoded SVG are only available when the font is installed or
@@ -246,7 +260,8 @@ function darken(hex: string) {
   return `#${[f((n >> 16) & 255), f((n >> 8) & 255), f(n & 255)].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
 }
 
-export async function buildZip(state: IconState, onProgress?: (label: string) => void): Promise<Blob> {
+/** Every export file for the chosen platforms, keyed by its path inside the zip. */
+export async function collectFiles(state: IconState, onProgress?: (label: string) => void): Promise<Files> {
   let files: Files = {};
   const name = state.filename.trim() || "ic_launcher";
   const add = async (label: string, fn: () => Promise<Files>) => {
@@ -261,9 +276,13 @@ export async function buildZip(state: IconState, onProgress?: (label: string) =>
   if (p.has("png")) await add("PNG/SVG", () => pngFiles(state));
   // Keep uploaded images embedded so the project reopens exactly as exported.
   files["icony.json"] = strToU8(JSON.stringify(state, null, 2));
+  return files;
+}
+
+export async function buildZip(state: IconState, onProgress?: (label: string) => void): Promise<Blob> {
+  const files = await collectFiles(state, onProgress);
   onProgress?.("Zipping");
-  const zipped = zipSync(files, { level: 6 });
-  return new Blob([zipped as BlobPart], { type: "application/zip" });
+  return new Blob([zipSync(files, { level: 6 }) as BlobPart], { type: "application/zip" });
 }
 
 export async function downloadSingle(state: IconState, kind: "png" | "svg", size = 1024) {
