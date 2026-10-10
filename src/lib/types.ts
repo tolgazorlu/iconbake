@@ -3,7 +3,9 @@ export type Platform = "android" | "ios" | "web" | "macos" | "png";
 export type IconSource =
   | { kind: "clipart"; prefix: string; name: string; body: string; width: number; height: number }
   | { kind: "text"; text: string; font: string; weight: number; italic: boolean }
-  | { kind: "image"; dataUrl: string; natural: { w: number; h: number } };
+  | { kind: "image"; dataUrl: string; natural: { w: number; h: number } }
+  // Full-artwork icons: the picture lives in the background, nothing is drawn on top.
+  | { kind: "none" };
 
 export type Effect = "none" | "drop" | "cast" | "score" | "emboss";
 export type BgType = "color" | "gradient" | "mesh" | "image" | "none";

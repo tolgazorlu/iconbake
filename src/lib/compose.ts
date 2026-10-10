@@ -201,12 +201,14 @@ function foreground(fg: Foreground, size: number, id: string): FgRender {
           `<text x="${cx}" y="${startY + i * lineH}" text-anchor="middle" dominant-baseline="central" font-family="${esc(font)}" font-weight="${weight}" ${italic ? 'font-style="italic"' : ""} font-size="${fontSize.toFixed(2)}" fill="${fg.color}">${esc(l)}</text>`,
       )
       .join("");
-  } else {
+  } else if (fg.source.kind === "image") {
     const { dataUrl, natural } = fg.source;
     const scale = box / Math.max(natural.w, natural.h);
     const w = natural.w * scale;
     const h = natural.h * scale;
     inner = `<image href="${dataUrl}" x="${cx - w / 2}" y="${cy - h / 2}" width="${w}" height="${h}"/>`;
+  } else {
+    return { defs: "", body: "" };
   }
 
   const t = `rotate(${fg.rotate} ${cx} ${cy}) translate(${cx} ${cy}) scale(${fg.scaleX} 1) translate(${-cx} ${-cy})`;
@@ -261,6 +263,8 @@ export interface ComposeOptions {
   platform?: Platform;
   /** Android adaptive layers: render only fg or bg at the full 108dp canvas (icon in 72dp safe zone). */
   layer?: "foreground" | "background" | "monochrome";
+  /** Recolor the result: white or black silhouette (tinted / themed icons) or grayscale. */
+  tone?: "white" | "black" | "gray";
   /** Preview-only: clip and draw outside mask area. */
   previewMask?: boolean;
   id?: string;
@@ -308,8 +312,9 @@ export function compose(state: IconState, opts: ComposeOptions = {}): Composed {
         size,
         id + "m",
       );
-      defs += mono.defs;
-      parts.push(mono.body);
+      // The filter turns any glyph, including uploaded or generated pictures, into a flat silhouette.
+      defs += mono.defs + toneFilter(`${id}-mono`, "black");
+      parts.push(`<g filter="url(#${id}-mono)">${mono.body}</g>`);
     }
     return { svg: wrap(size, defs, parts.join("")), size };
   }
@@ -333,7 +338,21 @@ export function compose(state: IconState, opts: ComposeOptions = {}): Composed {
     );
   }
   void inset;
+  if (opts.tone) {
+    defs += toneFilter(`${id}-tone`, opts.tone);
+    return { svg: wrap(size, defs, `<g filter="url(#${id}-tone)">${parts.join("")}</g>`), size };
+  }
   return { svg: wrap(size, defs, parts.join("")), size };
+}
+
+function toneFilter(id: string, tone: "white" | "black" | "gray") {
+  const m =
+    tone === "gray"
+      ? "0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0.2126 0.7152 0.0722 0 0 0 0 0 1 0"
+      : tone === "white"
+        ? "0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0"
+        : "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0";
+  return `<filter id="${id}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="${m}"/></filter>`;
 }
 
 function wrap(size: number, defs: string, body: string) {

@@ -84,13 +84,16 @@ async function iosFiles(state: IconState): Promise<Files> {
   // an image background is left as is because there is no color to shift.
   const darkState: IconState = { ...square, bg: darkenBackground(state.bg) };
   files["ios/AppIcon.appiconset/AppIcon-Dark.png"] = await svgToPng(compose(darkState, { platform: "png", size: 1024 }).svg, 1024);
-  // Tinted: grayscale glyph on transparent (system applies tint)
-  const tinted: IconState = {
-    ...square,
-    bg: { ...state.bg, type: "none" },
-    fg: { ...state.fg, color: "#ffffff", colorEnabled: true, effect: "none" },
-  };
-  files["ios/AppIcon.appiconset/AppIcon-Tinted.png"] = await svgToPng(compose(tinted, { platform: "png", size: 1024 }).svg, 1024);
+  // Tinted: white glyph on transparent (the system applies the tint). A full-artwork icon has no
+  // glyph to lift out, so it ships as a grayscale copy of the artwork instead.
+  const tintedSvg =
+    state.fg.source.kind === "none"
+      ? compose(square, { platform: "png", size: 1024, tone: "gray" }).svg
+      : compose(
+          { ...square, bg: { ...state.bg, type: "none", border: { ...state.bg.border, width: 0 } }, badge: "", fg: { ...state.fg, color: "#ffffff", colorEnabled: true, effect: "none" } },
+          { platform: "png", size: 1024, tone: "white" },
+        ).svg;
+  files["ios/AppIcon.appiconset/AppIcon-Tinted.png"] = await svgToPng(tintedSvg, 1024);
   files["ios/AppIcon.appiconset/Contents.json"] = strToU8(
     JSON.stringify(
       {
