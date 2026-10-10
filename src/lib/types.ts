@@ -96,6 +96,6 @@ export const DEFAULT_STATE: IconState = {
   appName: "",
   filename: "ic_launcher",
   platforms: ["android", "ios", "web"],
-  activePlatform: "ios",
+  activePlatform: "png",
   theme: "dark",
 };

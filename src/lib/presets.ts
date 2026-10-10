@@ -76,7 +76,7 @@ export const PRESETS: Preset[] = [
   },
   {
     id: "glyph",
-    label: "No background",
+    label: "Clear",
     apply: (s) => ({ ...s, fg: { ...s.fg, effect: "none" }, bg: { ...s.bg, type: "none", texture: "none", border: { width: 0, color: "#fff" } } }),
   },
 ];

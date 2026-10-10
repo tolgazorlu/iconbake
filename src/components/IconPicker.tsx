@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchCollections, fetchSet, iconSvg, searchAll, type CollectionMeta, type IconData } from "../lib/api";
 import { useStore } from "../lib/store";
+import { useSetSource } from "../lib/source";
 import { Icons } from "./ui";
 
 const PAGE = 300;
@@ -11,7 +12,7 @@ const FEATURED = [
 
 export function IconPicker() {
   const source = useStore((s) => s.state.fg.source);
-  const setFg = useStore((s) => s.setFg);
+  const setSource = useSetSource();
   const [collections, setCollections] = useState<CollectionMeta[]>([]);
   const [prefix, setPrefix] = useState("lucide");
   const [q, setQ] = useState("");
@@ -92,10 +93,7 @@ export function IconPicker() {
 
   const pick = (d: IconData) => {
     const palette = collections.find((c) => c.prefix === d.prefix)?.palette ?? false;
-    setFg({
-      source: { kind: "clipart", prefix: d.prefix, name: d.name, body: d.body, width: d.width, height: d.height },
-      colorEnabled: !palette,
-    });
+    setSource({ kind: "clipart", prefix: d.prefix, name: d.name, body: d.body, width: d.width, height: d.height }, !palette);
   };
 
   const random = async () => {

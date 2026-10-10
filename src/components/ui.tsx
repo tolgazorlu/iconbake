@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { SWATCHES } from "../lib/presets";
 
 export function Section({ title, right, children }: { title: string; right?: ReactNode; children: ReactNode }) {
@@ -110,7 +110,85 @@ export function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: 
   return <button type="button" role="switch" aria-checked={checked} className="toggle" onClick={() => onChange(!checked)} />;
 }
 
+
+/** Collapsible block for rarely used controls, closed by default. */
+export function Disclosure({ title, children, defaultOpen = false }: { title: string; children: ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className={`disclosure ${open ? "open" : ""}`}>
+      <button type="button" className="disclosure-h" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <span className="chev">{Icons.chevron}</span>
+        {title}
+      </button>
+      {open && <div className="disclosure-b">{children}</div>}
+    </div>
+  );
+}
+
+export function RailButton({ label, icon, active, onClick }: { label: string; icon: ReactNode; active?: boolean; onClick: () => void }) {
+  return (
+    <button type="button" className="rail-btn" aria-label={label} aria-pressed={active} data-tip={label} onClick={onClick}>
+      {icon}
+    </button>
+  );
+}
+
+const stroke = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" } as const;
+
 export const Icons = {
+  brush: (
+    <svg {...stroke}>
+      <path d="M9.5 14.5 19 5a2.1 2.1 0 0 0-3-3L6.5 11.5" />
+      <path d="M6.5 11.5c-2 0-3.5 1.6-3.5 3.6 0 1.7-.7 3.1-2 3.9 3.8 1.6 8.5.6 8.5-3.4 0-.9-.4-1.6-1-2.1" />
+    </svg>
+  ),
+  library: (
+    <svg {...stroke}>
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+  ),
+  text: (
+    <svg {...stroke}>
+      <path d="M5 6V4h14v2M12 4v16M9 20h6" />
+    </svg>
+  ),
+  upload: (
+    <svg {...stroke}>
+      <path d="M12 16V4m0 0-4 4m4-4 4 4M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" />
+    </svg>
+  ),
+  style: (
+    <svg {...stroke}>
+      <path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12" />
+      <circle cx="16" cy="6" r="2" />
+      <circle cx="10" cy="12" r="2" />
+      <circle cx="18" cy="18" r="2" />
+    </svg>
+  ),
+  box: (
+    <svg {...stroke}>
+      <path d="M21 8 12 3 3 8v8l9 5 9-5z" />
+      <path d="m3 8 9 5 9-5M12 13v8" />
+    </svg>
+  ),
+  chevron: (
+    <svg {...stroke}>
+      <path d="m9 6 6 6-6 6" />
+    </svg>
+  ),
+  close: (
+    <svg {...stroke}>
+      <path d="M6 6l12 12M18 6 6 18" />
+    </svg>
+  ),
+  check: (
+    <svg {...stroke}>
+      <path d="m5 12 5 5 9-10" />
+    </svg>
+  ),
   search: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="7" />
