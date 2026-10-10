@@ -11,6 +11,10 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+
+# AI generations (paid images, local history)
+.generations
 
 # Editor directories and files
 .vscode/*
