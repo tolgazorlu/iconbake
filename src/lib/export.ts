@@ -47,13 +47,16 @@ async function androidFiles(state: IconState, name: string): Promise<Files> {
   const monoSvg = compose(state, { platform: "android", layer: "monochrome", size: 432 }).svg;
   const legacy = compose({ ...state, shape: "circle" }, { platform: "android", size: 192 }).svg;
   const legacySq = compose({ ...state, shape: "rounded", radius: 12 }, { platform: "android", size: 192 }).svg;
+  // An artwork-only icon has no glyph to turn into a themed (monochrome) icon; an empty layer
+  // would show a blank icon on Android 13+, so leave the layer out.
+  const hasMono = state.fg.source.kind !== "none";
 
   for (const [d, m] of ANDROID_DENSITIES) {
     const full = Math.round(108 * m);
     const leg = Math.round(48 * m);
     files[`android/res/mipmap-${d}/${name}_foreground.png`] = await svgToPng(fgSvg, full);
     files[`android/res/mipmap-${d}/${name}_background.png`] = await svgToPng(bgSvg, full);
-    files[`android/res/mipmap-${d}/${name}_monochrome.png`] = await svgToPng(monoSvg, full);
+    if (hasMono) files[`android/res/mipmap-${d}/${name}_monochrome.png`] = await svgToPng(monoSvg, full);
     files[`android/res/mipmap-${d}/${name}.png`] = await svgToPng(legacySq, leg);
     files[`android/res/mipmap-${d}/${name}_round.png`] = await svgToPng(legacy, leg);
   }
@@ -61,8 +64,7 @@ async function androidFiles(state: IconState, name: string): Promise<Files> {
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@mipmap/${name}_background"/>
     <foreground android:drawable="@mipmap/${name}_foreground"/>
-    <monochrome android:drawable="@mipmap/${name}_monochrome"/>
-</adaptive-icon>
+${hasMono ? `    <monochrome android:drawable="@mipmap/${name}_monochrome"/>\n` : ""}</adaptive-icon>
 `;
   files[`android/res/mipmap-anydpi-v26/${name}.xml`] = strToU8(xml);
   files[`android/res/mipmap-anydpi-v26/${name}_round.xml`] = strToU8(xml);
@@ -70,7 +72,7 @@ async function androidFiles(state: IconState, name: string): Promise<Files> {
   // Vector drawables for layers (SVG kept for reference; AS can import)
   files[`android/svg/${name}_foreground.svg`] = strToU8(fgSvg);
   files[`android/svg/${name}_background.svg`] = strToU8(bgSvg);
-  files[`android/svg/${name}_monochrome.svg`] = strToU8(monoSvg);
+  if (hasMono) files[`android/svg/${name}_monochrome.svg`] = strToU8(monoSvg);
   return files;
 }
 
