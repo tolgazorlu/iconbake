@@ -79,7 +79,7 @@ async function buildState(server: ViteDevServer, root: string, b: Body) {
 
   if (b.icon) {
     const [prefix, name] = b.icon.split(":");
-    const port = server.config.server.port ?? 5178;
+    const port = server.config.server.port ?? 4100;
     const r = await fetch(`http://localhost:${port}/api/icon/${prefix}/${name}`);
     if (!r.ok) throw new Error(`icon not found: ${b.icon}`);
     const ic = (await r.json()) as { body: string; width: number; height: number };

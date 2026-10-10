@@ -14,7 +14,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const BASE = (process.env.ICONY_URL ?? "http://localhost:5178").replace(/\/$/, "");
+const BASE = (process.env.ICONY_URL ?? "http://localhost:4100").replace(/\/$/, "");
 
 type Json = Record<string, unknown>;
 
@@ -32,7 +32,7 @@ async function ensureServer() {
   if (await alive()) return;
   starting ??= (async () => {
     const vite = path.join(ROOT, "node_modules", "vite", "bin", "vite.js");
-    const port = new URL(BASE).port || "5178";
+    const port = new URL(BASE).port || "4100";
     const child = spawn(process.execPath, [vite, "--port", port, "--strictPort"], { cwd: ROOT, detached: true, stdio: "ignore" });
     child.unref();
     for (let i = 0; i < 40; i++) {

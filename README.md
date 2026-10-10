@@ -12,7 +12,7 @@ Vite dev-server middleware; nothing leaves your machine.
 
 ```bash
 pnpm install
-pnpm dev        # http://localhost:5178
+pnpm dev        # http://localhost:4100
 ```
 
 ## What it does
@@ -83,7 +83,7 @@ logged with its estimated cost in `.generations/history.jsonl`; images are saved
 | Image file | `GET /api/ai/file/<item id>` |
 
 ```bash
-curl -s localhost:5178/api/ai/generate -H 'Content-Type: application/json' \
+curl -s localhost:4100/api/ai/generate -H 'Content-Type: application/json' \
   -d '{"subject":"a paper plane","style":"monolith","mode":"glyph","model":"gpt","n":2}'
 ```
 
@@ -95,7 +95,7 @@ The response lists `run.items[].file` (absolute path) and `run.usd`.
 of a browser canvas) and writes it plus a 512 px preview to `.generations/exports/`:
 
 ```bash
-curl -s localhost:5178/api/export -H 'Content-Type: application/json' \
+curl -s localhost:4100/api/export -H 'Content-Type: application/json' \
   -d '{"icon":"lucide:leaf","preset":"mint","filename":"leafy","platforms":["ios","android","web"]}'
 ```
 
@@ -103,7 +103,7 @@ Sources: `icon` (library id), `text`, `ai_item` (+ `ai_as: "full"|"glyph"`) or `
 Styling: `preset`, `background`, `gradient`, `glyph_color`, `size`, `shape`, `badge`, `app_name`.
 
 `mcp/server.ts` is a stdio MCP server over these routes (`pnpm mcp`). It starts `vite` itself
-when nothing answers on `ICONY_URL` (default `http://localhost:5178`). Tools: `status`,
+when nothing answers on `ICONY_URL` (default `http://localhost:4100`). Tools: `status`,
 `search_icons`, `preview_prompt`, `generate`, `refine`, `remove_background`, `history`,
 `export_icon`. Paid tools take a `max_usd` and refuse when the estimate is higher.
 
