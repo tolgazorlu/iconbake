@@ -89,6 +89,29 @@ curl -s localhost:5178/api/ai/generate -H 'Content-Type: application/json' \
 
 The response lists `run.items[].file` (absolute path) and `run.usd`.
 
+## Headless export and MCP
+
+`POST /api/export` builds the same zip as the Download button on the dev server (resvg instead
+of a browser canvas) and writes it plus a 512 px preview to `.generations/exports/`:
+
+```bash
+curl -s localhost:5178/api/export -H 'Content-Type: application/json' \
+  -d '{"icon":"lucide:leaf","preset":"mint","filename":"leafy","platforms":["ios","android","web"]}'
+```
+
+Sources: `icon` (library id), `text`, `ai_item` (+ `ai_as: "full"|"glyph"`) or `image_path`.
+Styling: `preset`, `background`, `gradient`, `glyph_color`, `size`, `shape`, `badge`, `app_name`.
+
+`mcp/server.ts` is a stdio MCP server over these routes (`pnpm mcp`). It starts `vite` itself
+when nothing answers on `ICONY_URL` (default `http://localhost:5178`). Tools: `status`,
+`search_icons`, `preview_prompt`, `generate`, `refine`, `remove_background`, `history`,
+`export_icon`. Paid tools take a `max_usd` and refuse when the estimate is higher.
+
+```bash
+hermes mcp add icony --command ~/.hermes/node/bin/node --args ~/projects/icony/mcp/server.ts
+claude mcp add -s user icony -- ~/.hermes/node/bin/node ~/projects/icony/mcp/server.ts
+```
+
 ## Notes
 
 - Text rendering uses fonts installed on this Mac; exported PNGs match what
