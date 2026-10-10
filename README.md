@@ -17,8 +17,8 @@ pnpm dev        # http://localhost:5178
 
 ## What it does
 
-- **Icon source**: clipart (any set, or search all 380k at once), text (system
-  fonts, weight, italic, multi-line, emoji), or an uploaded SVG/PNG.
+- **Icon source**: AI generation (fal.ai, see below), clipart (any set, or search all
+  380k at once), text (system fonts, weight, italic, multi-line, emoji), or an uploaded SVG/PNG.
 - **Glyph**: recolor, padding, rotate, offset, flip, stroke width override,
   opacity, effects (drop shadow, long cast shadow, score, emboss).
 - **Background**: flat, linear/radial gradient, mesh gradient (seeded), image,
@@ -41,6 +41,53 @@ pnpm dev        # http://localhost:5178
   - PNG 64…1024, composed SVG, bare glyph SVG, and `icony.json` (the project).
 - Copy 512 PNG to clipboard (`⌘C`), save/open project JSON, undo/redo, dark
   and light UI theme, state persists in localStorage.
+
+## AI generation (fal.ai)
+
+The **Generate** panel makes icons with fal.ai image models. Two outputs:
+
+- **Full icon**: the artwork fills the icon, background included. Export uses it as the
+  background layer; the iOS tinted variant becomes a grayscale copy and the Android themed
+  (monochrome) layer is left out.
+- **Glyph only**: one object on a transparent background (GPT Image returns it directly, other
+  models go through BiRefNet cut-out), placed on your Style background. This is the mode that
+  gives proper Android adaptive, monochrome and iOS tinted icons.
+
+14 styles (Monolith, Porcelain, Frosted glass, Glossy toy, Clay, Painterly, Paper cut, Diorama,
+Enamel pin, Metal, Risograph, Pixel, Flat mark, Line mark), 1 to 4 variants, palette lock
+(auto, neutral, brand hex), optional style reference image, editable prompt, refine with an
+instruction, and a history of every image.
+
+Models and estimated cost per image (fal pricing, 2026-10): FLUX.2 Klein $0.007, GPT Image 1.5
+medium $0.04, Nano Banana 2 $0.08, Recraft V3 vector $0.08 (SVG, full icons only), Nano Banana
+Pro $0.15. Cut-out adds ~$0.002.
+
+Setup: put `FAL_KEY=...` in `.env.local` (or the shell env, or `~/.hermes/.env`). The panel
+shows which file the key came from. The key is only read by the dev server.
+
+Guards: paid routes accept same-origin JSON posts or curl (no `Origin`), one run at a time, max 4
+images, no retries, a 180 s timeout that cancels the fal job, and a daily cap from
+`ICONY_DAILY_LIMIT_USD` (default 3). Every run, including failed ones that were billed, is
+logged with its estimated cost in `.generations/history.jsonl`; images are saved next to it.
+
+### HTTP API (dev server)
+
+| Call | Route |
+|---|---|
+| Key, spend, models, styles | `GET /api/ai/status` |
+| Compiled prompt + cost, free | `POST /api/ai/prompt` |
+| Generate | `POST /api/ai/generate` `{subject, style, mode: "full"\|"glyph", model, n, palette?, brand?, backdrop?, prompt?, refImage?}` |
+| Refine an image | `POST /api/ai/refine` `{item, instruction, model, mode}` |
+| Remove background | `POST /api/ai/cutout` `{item}` |
+| History | `GET /api/ai/history?limit=30` |
+| Image file | `GET /api/ai/file/<item id>` |
+
+```bash
+curl -s localhost:5178/api/ai/generate -H 'Content-Type: application/json' \
+  -d '{"subject":"a paper plane","style":"monolith","mode":"glyph","model":"gpt","n":2}'
+```
+
+The response lists `run.items[].file` (absolute path) and `run.usd`.
 
 ## Notes
 
