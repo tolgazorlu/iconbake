@@ -1,9 +1,7 @@
-#!/usr/bin/env node
-// Icony MCP server (stdio). A thin client of the Icony dev server: every guard (fal key, origin
-// check, daily cap, single run) stays in the Vite plugins, this file only maps tools to routes.
-// Starts `vite` in the background when nothing answers on ICONY_URL.
-//
-//   node mcp/server.ts            (Node 22.18+ strips the types itself)
+// Icony MCP server (stdio), started by `icony mcp`.
+// Free tools (search, export) run in-process. Paid AI tools are a thin client of the Icony dev
+// server: every guard (fal key, origin check, daily cap, single run) stays in the Vite plugins.
+// Starts `vite` in the background when a paid tool needs it and nothing answers on ICONY_URL.
 
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -12,6 +10,10 @@ import { fileURLToPath } from "node:url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { licenseOf, search } from "../plugins/iconify-core.ts";
+import { exportIcon, PRESET_IDS, type ExportBody } from "../plugins/export-core.ts";
+import { lib } from "./lib.ts";
+import pkg from "../package.json" with { type: "json" };
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const BASE = (process.env.ICONY_URL ?? "http://localhost:4100").replace(/\/$/, "");
@@ -81,7 +83,8 @@ function dataUri(file: string) {
 const STYLE_IDS = ["monolith", "porcelain", "glass", "toy", "clay", "painterly", "paper", "diorama", "enamel", "metal", "riso", "pixel", "flat", "line"] as const;
 const MODEL_IDS = ["draft", "gpt", "nb2", "nbpro", "vector"] as const;
 
-const server = new McpServer({ name: "icony", version: "1.0.0" });
+export async function runMcp() {
+const server = new McpServer({ name: "icony", version: pkg.version });
 
 server.registerTool(
   "status",
@@ -102,12 +105,12 @@ server.registerTool(
   "search_icons",
   {
     description:
-      "Search ~380k open-source icons (Iconify, 220+ sets) by English name. Returns ids like 'lucide:leaf' for export_icon. Name match only, so try synonyms. Free.",
+      "Search ~370k open-source icons (Iconify, 220+ sets) by English name. Returns ids like 'lucide:leaf' for export_icon and each set's license. Name match only, so try synonyms. Free, local.",
     inputSchema: { query: z.string().min(2), limit: z.number().int().min(1).max(60).default(20) },
   },
   tool(async ({ query, limit }: { query: string; limit: number }) => {
-    const r = await call("GET", `/api/search?q=${encodeURIComponent(query)}&limit=${limit}`);
-    return { total: r.total, ids: (r.results as Json[]).map((x) => `${x.prefix}:${x.name}`) };
+    const r = search(query, limit);
+    return { total: r.total, ids: r.results.map((x) => `${x.prefix}:${x.name}`), licenses: Object.fromEntries([...new Set(r.results.map((x) => x.prefix))].map((p) => [p, licenseOf(p).spdx || licenseOf(p).title])) };
   }),
 );
 
@@ -213,7 +216,7 @@ server.registerTool(
       ai_item: z.string().optional().describe("Image id from generate"),
       ai_as: z.enum(["full", "glyph"]).default("full").optional(),
       image_path: z.string().optional().describe("Local PNG/SVG used as the glyph"),
-      preset: z.enum(["ink", "paper", "graphite", "sunset", "ocean", "mint", "candy", "aurora", "ember", "dots", "blueprint", "outline", "halftone", "glyph"]).optional(),
+      preset: z.enum(PRESET_IDS).optional(),
       background: z.string().regex(/^#[0-9a-fA-F]{3,6}$/).optional(),
       gradient: z.tuple([z.string(), z.string()]).optional(),
       glyph_color: z.string().regex(/^#[0-9a-fA-F]{3,6}$/).optional(),
@@ -226,11 +229,8 @@ server.registerTool(
       out_dir: z.string().optional().describe("Default: icony/.generations/exports"),
     },
   },
-  tool(async (a: Json) => {
-    const sources = ["icon", "text", "ai_item", "image_path"].filter((k) => a[k]);
-    if (sources.length !== 1) throw new Error("Give exactly one source: icon, text, ai_item or image_path");
-    return call("POST", "/api/export", a);
-  }),
+  tool(async (a: Json) => exportIcon(lib, a as ExportBody, { root: ROOT, defaultOut: path.join(ROOT, ".generations", "exports") })),
 );
 
 await server.connect(new StdioServerTransport());
+}
