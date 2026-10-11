@@ -89,28 +89,36 @@ curl -s localhost:4100/api/ai/generate -H 'Content-Type: application/json' \
 
 The response lists `run.items[].file` (absolute path) and `run.usd`.
 
-## Headless export and MCP
-
-`POST /api/export` builds the same zip as the Download button on the dev server (resvg instead
-of a browser canvas) and writes it plus a 512 px preview to `.generations/exports/`:
+## CLI and MCP (no browser, no dev server)
 
 ```bash
-curl -s localhost:4100/api/export -H 'Content-Type: application/json' \
-  -d '{"icon":"lucide:leaf","preset":"mint","filename":"leafy","platforms":["ios","android","web"]}'
+pnpm build:cli                     # once: bundles dist-cli/icony.js
+node dist-cli/icony.js             # library size and next steps
+node dist-cli/icony.js search "shopping cart" --limit 10
+node dist-cli/icony.js export --icon mdi:barcode --preset ink --out ./assets/icon
 ```
 
-Sources: `icon` (library id), `text`, `ai_item` (+ `ai_as: "full"|"glyph"`) or `image_path`.
-Styling: `preset`, `background`, `gradient`, `glyph_color`, `size`, `shape`, `badge`, `app_name`.
+`export` writes `<filename>-<stamp>.zip` (iOS `AppIcon.appiconset` with dark and tinted, Android
+adaptive + monochrome, web favicons + manifest; add `macos` or `png` with `--platforms`) and a
+512 px preview PNG. Sources: `--icon <id>`, `--text`, or `--image <png|svg>`. Styling: `--preset`,
+`--background`, `--glyph-color`, `--size`, `--shape`. Every command takes `--json`; usage errors
+exit 2 with a `help:` line. Library icons report their set's license: check sets that need
+attribution (CC BY) before shipping.
 
-`mcp/server.ts` is a stdio MCP server over these routes (`pnpm mcp`). It starts `vite` itself
-when nothing answers on `ICONY_URL` (default `http://localhost:4100`). Tools: `status`,
-`search_icons`, `preview_prompt`, `generate`, `refine`, `remove_background`, `history`,
-`export_icon`. Paid tools take a `max_usd` and refuse when the estimate is higher.
+`icony mcp` is a stdio MCP server. `search_icons` and `export_icon` run in-process; the paid AI
+tools (`status`, `preview_prompt`, `generate`, `refine`, `remove_background`, `history`) go to the
+dev server, which it starts itself when nothing answers on `ICONY_URL` (default
+`http://localhost:4100`). Paid tools take a `max_usd` and refuse when the estimate is higher.
 
 ```bash
-hermes mcp add icony --command ~/.hermes/node/bin/node --args ~/projects/icony/mcp/server.ts
-claude mcp add -s user icony -- ~/.hermes/node/bin/node ~/projects/icony/mcp/server.ts
+hermes mcp add icony --command ~/.hermes/node/bin/node --args ~/projects/icony/dist-cli/icony.js mcp
+claude mcp add -s user icony -- node ~/projects/icony/dist-cli/icony.js mcp
 ```
+
+The dev server keeps the same export over HTTP (`POST /api/export` with `icon`, `text`, `ai_item`
++ `ai_as`, or `image_path`), used by the UI tooling and curl.
+
+`pnpm test` builds the CLI and drives it end to end (search, export, usage errors, MCP).
 
 ## Notes
 
