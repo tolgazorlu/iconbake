@@ -11,7 +11,7 @@
     "mcp": "node dist-cli/icony.js mcp",
     "build:cli": "vite build -c vite.cli.config.ts && chmod +x dist-cli/icony.js",
     "typecheck:cli": "tsc -p tsconfig.cli.json",
-    "test": "pnpm build:cli && node --test test/"
+    "test": "pnpm build:cli && node --test \"test/*.test.mjs\""
   },
   "dependencies": {
     "@iconify/json": "^2.2.537",
