@@ -1,3 +1,4 @@
+import { isLocalRequest } from "./guard.ts";
 import type { Plugin, ViteDevServer } from "vite";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
@@ -20,13 +21,14 @@ async function readJson<T>(req: IncomingMessage): Promise<T> {
 
 // Loaded through Vite (ssrLoadModule) so the export always matches the running UI.
 async function loadLib(server: ViteDevServer): Promise<Lib> {
-  const [types, presets, exp, comp] = await Promise.all([
+  const [types, presets, exp, comp, proj] = await Promise.all([
     server.ssrLoadModule("/src/lib/types.ts"),
     server.ssrLoadModule("/src/lib/presets.ts"),
     server.ssrLoadModule("/src/lib/export.ts"),
     server.ssrLoadModule("/src/lib/compose.ts"),
+    server.ssrLoadModule("/src/lib/project.ts"),
   ]);
-  return { DEFAULT_STATE: types.DEFAULT_STATE, PRESETS: presets.PRESETS, setRasterizer: exp.setRasterizer, collectFiles: exp.collectFiles, compose: comp.compose } as Lib;
+  return { DEFAULT_STATE: types.DEFAULT_STATE, PRESETS: presets.PRESETS, setRasterizer: exp.setRasterizer, collectFiles: exp.collectFiles, compose: comp.compose, sanitizeProject: proj.sanitizeProject } as Lib;
 }
 
 export function exportApi(): Plugin {
@@ -37,12 +39,11 @@ export function exportApi(): Plugin {
         const url = new URL(req.url ?? "/", "http://localhost");
         if (url.pathname !== "/api/export") return next();
         if (req.method !== "POST") return send(res, 405, { error: "POST JSON" });
-        const origin = req.headers.origin;
-        if (origin && URL.parse(origin)?.host !== req.headers.host) return send(res, 403, { error: "cross-origin request refused" });
+        if (!isLocalRequest(req)) return send(res, 403, { error: "cross-origin request refused" });
         try {
           const body = await readJson<ExportBody>(req);
           const root = server.config.root;
-          return send(res, 200, await exportIcon(await loadLib(server), body, { root, defaultOut: path.join(root, ".generations", "exports") }));
+          return send(res, 200, await exportIcon(await loadLib(server), body, { root, defaultOut: path.join(root, ".generations", "exports"), confineTo: root }));
         } catch (e) {
           return send(res, 400, { error: (e as Error).message });
         }

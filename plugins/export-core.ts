@@ -40,7 +40,15 @@ export type Lib = {
   setRasterizer: (fn: typeof rasterize) => void;
   collectFiles: (s: State) => Promise<Record<string, Uint8Array>>;
   compose: (s: State, o: { platform: string; size: number; id: string }) => { svg: string };
+  sanitizeProject: (raw: unknown) => State | null;
 };
+
+/** Resolves `p` and throws unless it stays inside `root` (used for paths that arrive over HTTP). */
+export function confine(root: string, p: string, what: string): string {
+  const abs = path.resolve(root, p);
+  if (abs !== root && !abs.startsWith(root + path.sep)) throw new Error(`${what} must stay inside ${root}`);
+  return abs;
+}
 
 export type ExportResult = {
   zip: string;
@@ -75,9 +83,19 @@ const asDataUri = (file: string) => `data:${mime(file)};base64,${fs.readFileSync
 export const PRESET_IDS = ["ink", "paper", "graphite", "sunset", "ocean", "mint", "candy", "aurora", "ember", "dots", "blueprint", "outline", "halftone", "glyph"] as const;
 export const PLATFORMS = ["ios", "android", "web", "macos", "png"] as const;
 
-function buildState(lib: Lib, root: string, b: ExportBody) {
+function buildState(lib: Lib, root: string, b: ExportBody, confineTo?: string) {
   let s: State = structuredClone(lib.DEFAULT_STATE);
-  if (b.state) s = { ...s, ...b.state };
+  if (b.state) {
+    // A full state can carry anything into SVG attributes and zip entry names; clean it first.
+    s = lib.sanitizeProject({ ...s, ...b.state });
+    if (!s) throw new Error("state contains unsafe values");
+    const src = s.fg.source;
+    if (src.kind === "clipart") {
+      const ic = getIcon(src.prefix, src.name);
+      if (!ic) throw new Error(`icon not found: ${src.prefix}:${src.name}`);
+      src.body = ic.body;
+    }
+  }
 
   if (b.icon) {
     const [prefix, name] = b.icon.split(":");
@@ -89,7 +107,7 @@ function buildState(lib: Lib, root: string, b: ExportBody) {
     s.fg.source = { kind: "text", text: b.text, font: b.font ?? "-apple-system, system-ui", weight: 700, italic: false };
     s.fg.colorEnabled = true;
   } else if (b.ai_item || b.image_path) {
-    const file = b.ai_item ? path.join(root, ".generations", b.ai_item) : path.resolve(b.image_path!);
+    const file = b.ai_item ? path.join(root, ".generations", b.ai_item) : confineTo ? confine(confineTo, b.image_path!, "image_path") : path.resolve(b.image_path!);
     if (b.ai_item && !path.normalize(file).startsWith(path.join(root, ".generations") + path.sep)) throw new Error("bad ai_item");
     if (!fs.existsSync(file)) throw new Error(`file not found: ${b.ai_item ?? b.image_path}`);
     const dataUrl = asDataUri(file);
@@ -121,15 +139,19 @@ function buildState(lib: Lib, root: string, b: ExportBody) {
   return s;
 }
 
-/** Writes <filename>-<stamp>.zip and a 512 px preview PNG into out_dir (default defaultOut). */
-export async function exportIcon(lib: Lib, b: ExportBody, opts: { root: string; defaultOut: string }): Promise<ExportResult> {
+/**
+ * Writes <filename>-<stamp>.zip and a 512 px preview PNG into out_dir (default defaultOut).
+ * `confineTo` keeps image_path and out_dir inside that directory; the HTTP route sets it because
+ * a request can come from any page served by the dev server, the CLI and MCP leave it unset.
+ */
+export async function exportIcon(lib: Lib, b: ExportBody, opts: { root: string; defaultOut: string; confineTo?: string }): Promise<ExportResult> {
   const sources = (["icon", "text", "ai_item", "image_path"] as const).filter((k) => b[k]);
   if (sources.length !== 1) throw new Error("give exactly one source: icon, text, ai_item or image_path");
-  const state = buildState(lib, opts.root, b);
+  const state = buildState(lib, opts.root, b, opts.confineTo);
   lib.setRasterizer(rasterize);
   const files = await lib.collectFiles(state);
   const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-  const outDir = path.resolve(b.out_dir ?? opts.defaultOut);
+  const outDir = opts.confineTo ? confine(opts.confineTo, b.out_dir ?? opts.defaultOut, "out_dir") : path.resolve(b.out_dir ?? opts.defaultOut);
   const base = `${state.filename || "icon"}-${stamp}`;
   fs.mkdirSync(outDir, { recursive: true });
   const zip = path.join(outDir, `${base}.zip`);
