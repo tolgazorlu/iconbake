@@ -74,8 +74,8 @@ export interface AiStyle {
 }
 
 // Each style names a material and a light, not a vibe: concrete looks hold up across subjects.
-// Toy, painterly and monolith came out of real icon rounds (Bricky Builders, Bungalove, neutral
-// house taste); the rest follow what current icon generators and store charts lean on.
+// Toy, painterly and monolith came out of real icon rounds; the rest follow what current icon
+// generators and store charts lean on.
 export const AI_STYLES: AiStyle[] = [
   {
     id: "monolith",

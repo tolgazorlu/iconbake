@@ -146,7 +146,7 @@ export function GeneratePanel({ flash }: { flash: (m: string) => void }) {
       <div className="panel-b">
         {status && !status.configured && (
           <div className="note">
-            <b>fal key missing.</b> Add <code>FAL_KEY=…</code> to <code>icony/.env.local</code> or <code>~/.hermes/.env</code>. It is read on every request. The key stays on the dev server; the browser never sees it.
+            <b>fal key missing.</b> Add <code>FAL_KEY=…</code> to <code>.env.local</code> in the project folder. It is read on every request. The key stays on the dev server; the browser never sees it.
           </div>
         )}
 

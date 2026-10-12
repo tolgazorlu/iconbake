@@ -62,7 +62,7 @@ Models and estimated cost per image (fal pricing, 2026-10): FLUX.2 Klein $0.007,
 medium $0.04, Nano Banana 2 $0.08, Recraft V3 vector $0.08 (SVG, full icons only), Nano Banana
 Pro $0.15. Cut-out adds ~$0.002.
 
-Setup: put `FAL_KEY=...` in `.env.local` (or the shell env, or `~/.hermes/.env`). The panel
+Setup: put `FAL_KEY=...` in `.env.local` (or the shell env). The panel
 shows which file the key came from. The key is only read by the dev server.
 
 Guards: paid routes accept same-origin JSON posts or curl (no `Origin`), one run at a time, max 4
@@ -111,8 +111,8 @@ dev server, which it starts itself when nothing answers on `ICONY_URL` (default
 `http://localhost:4100`). Paid tools take a `max_usd` and refuse when the estimate is higher.
 
 ```bash
-hermes mcp add icony --command ~/.hermes/node/bin/node --args ~/projects/icony/dist-cli/icony.js mcp
-claude mcp add -s user icony -- node ~/projects/icony/dist-cli/icony.js mcp
+hermes mcp add icony --command node --args /path/to/icony/dist-cli/icony.js mcp
+claude mcp add -s user icony -- node /path/to/icony/dist-cli/icony.js mcp
 ```
 
 The dev server keeps the same export over HTTP (`POST /api/export` with `icon`, `text`, `ai_item`
