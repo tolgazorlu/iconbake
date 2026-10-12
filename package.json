@@ -1,11 +1,11 @@
 {
-  "name": "iconpress",
+  "name": "iconbake",
   "version": "0.1.0",
   "description": "Local app icon generator: a glyph, a background and a shape in, a store-ready iOS/Android/macOS/web icon set out. CLI, UI and MCP.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tolgazorlu/iconpress.git"
+    "url": "https://github.com/tolgazorlu/iconbake.git"
   },
   "private": true,
   "type": "module",
@@ -14,8 +14,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "mcp": "node dist-cli/iconpress.js mcp",
-    "build:cli": "vite build -c vite.cli.config.ts && chmod +x dist-cli/iconpress.js",
+    "mcp": "node dist-cli/iconbake.js mcp",
+    "build:cli": "vite build -c vite.cli.config.ts && chmod +x dist-cli/iconbake.js",
     "typecheck:cli": "tsc -p tsconfig.cli.json",
     "test": "pnpm build:cli && node --test \"test/*.test.mjs\""
   },
@@ -40,6 +40,6 @@
     "vite": "^8.3.0"
   },
   "bin": {
-    "iconpress": "dist-cli/iconpress.js"
+    "iconbake": "dist-cli/iconbake.js"
   }
 }

@@ -26,7 +26,7 @@ import {
 let ROOT = process.cwd();
 let OUT = path.join(ROOT, ".generations");
 let LOG = path.join(OUT, "history.jsonl");
-const DAILY_LIMIT = Number(process.env.ICONPRESS_DAILY_LIMIT_USD ?? 3);
+const DAILY_LIMIT = Number(process.env.ICONBAKE_DAILY_LIMIT_USD ?? 3);
 const TIMEOUT_MS = 180_000;
 
 type Key = { value: string; source: string } | null;
@@ -225,7 +225,7 @@ function guard(res: ServerResponse, key: Key, usd: number) {
   }
   const s = spent(history());
   if (s.today + usd > DAILY_LIMIT) {
-    send(res, 429, { error: `Daily limit reached: $${s.today.toFixed(2)} spent today, this run needs ~$${usd.toFixed(2)}, limit $${DAILY_LIMIT.toFixed(2)} (ICONPRESS_DAILY_LIMIT_USD).` });
+    send(res, 429, { error: `Daily limit reached: $${s.today.toFixed(2)} spent today, this run needs ~$${usd.toFixed(2)}, limit $${DAILY_LIMIT.toFixed(2)} (ICONBAKE_DAILY_LIMIT_USD).` });
     return false;
   }
   if (busy) {
@@ -332,7 +332,7 @@ async function cutoutRoute(body: { item: string }, key: string): Promise<AiRun> 
 
 export function falApi(): Plugin {
   return {
-    name: "iconpress:fal-api",
+    name: "iconbake:fal-api",
     configureServer(server) {
       ROOT = server.config.root;
       OUT = path.join(ROOT, ".generations");
