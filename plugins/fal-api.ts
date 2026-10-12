@@ -1,3 +1,4 @@
+import { isLocalRequest } from "./guard.ts";
 import type { Plugin } from "vite";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import fs from "node:fs";
@@ -45,10 +46,10 @@ function readEnvFile(file: string): string | null {
   return null;
 }
 
-/** Lookup order: shell env, project .env.local, project .env, then ~/.hermes/.env (shared with Hermes). */
+/** Lookup order: shell env, project .env.local, project .env. */
 function loadKey(): Key {
   if (process.env.FAL_KEY) return { value: process.env.FAL_KEY, source: "FAL_KEY environment variable" };
-  const files = [path.join(ROOT, ".env.local"), path.join(ROOT, ".env"), path.join(os.homedir(), ".hermes", ".env")];
+  const files = [path.join(ROOT, ".env.local"), path.join(ROOT, ".env")];
   for (const f of files) {
     const v = readEnvFile(f);
     if (v) return { value: v, source: f.replace(os.homedir(), "~") };
@@ -61,12 +62,6 @@ function send(res: ServerResponse, status: number, body: unknown) {
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Cache-Control", "no-store");
   res.end(JSON.stringify(body));
-}
-
-function sameOrigin(req: IncomingMessage) {
-  const origin = req.headers.origin;
-  if (!origin) return true; // curl and other CLI tools
-  return URL.parse(origin)?.host === req.headers.host;
 }
 
 async function readJson<T>(req: IncomingMessage, limit = 20 * 1024 * 1024): Promise<T> {
@@ -225,7 +220,7 @@ function safeItemPath(id: string) {
 
 function guard(res: ServerResponse, key: Key, usd: number) {
   if (!key) {
-    send(res, 412, { error: "FAL_KEY is not set. Add FAL_KEY=... to icony/.env.local (or ~/.hermes/.env). It is read on every request, no restart needed." });
+    send(res, 412, { error: "FAL_KEY is not set. Add FAL_KEY=... to .env.local in the project folder. It is read on every request, no restart needed." });
     return false;
   }
   const s = spent(history());
@@ -386,7 +381,7 @@ export function falApi(): Plugin {
         }
 
         if (["generate", "refine", "cutout"].includes(route) && req.method === "POST") {
-          if (!sameOrigin(req)) return send(res, 403, { error: "cross-origin request refused" });
+          if (!isLocalRequest(req)) return send(res, 403, { error: "cross-origin request refused" });
           if (!String(req.headers["content-type"] ?? "").includes("application/json")) {
             return send(res, 415, { error: "send JSON" });
           }

@@ -1,3 +1,4 @@
+import { isLocalRequest } from "./guard.ts";
 import type { Plugin } from "vite";
 import fs from "node:fs";
 import path from "node:path";
@@ -75,12 +76,10 @@ export function iconifyApi(): Plugin {
           // Dev-only helper: save a posted file to the scratch dir so exports can be verified from the CLI.
           // Any web page can fire a simple cross-origin POST at localhost, so only accept requests from
           // the app itself (or from tools that send no Origin, like curl).
-          const origin = req.headers.origin;
-          if (origin && URL.parse(origin)?.host !== req.headers.host) {
-            return send(res, 403, { error: "cross-origin dump refused" });
-          }
+          if (!isLocalRequest(req)) return send(res, 403, { error: "cross-origin dump refused" });
           const chunks: Buffer[] = [];
           req.on("data", (c: Buffer) => chunks.push(c));
+          req.on("error", (e: Error) => send(res, 400, { error: e.message }));
           req.on("end", () => {
             const name = (url.searchParams.get("name") ?? "dump.bin").replace(/[^a-zA-Z0-9._-]/g, "_");
             const dir = process.env.TMPDIR ?? "/tmp";
