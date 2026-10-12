@@ -35,9 +35,9 @@ const safeStorage: StateStorage = {
         if (s.fg.source.kind === "image") s.fg.source = { ...s.fg.source, dataUrl: "" };
         if (s.bg.image) s.bg = { ...s.bg, image: null, type: s.bg.type === "image" ? "color" : s.bg.type };
         localStorage.setItem(name, JSON.stringify(data));
-        console.warn("icony: uploaded image too large to persist; it will not survive a reload");
+        console.warn("iconpress: uploaded image too large to persist; it will not survive a reload");
       } catch {
-        console.warn("icony: state too large to persist");
+        console.warn("iconpress: state too large to persist");
       }
     }
   },
@@ -80,7 +80,7 @@ export const useStore = create<Store>()(
       reset: () => set({ state: DEFAULT_STATE, history: [], future: [] }),
     }),
     {
-      name: "icony:v1",
+      name: "iconpress:v1",
       storage: createJSONStorage(() => safeStorage),
       partialize: (s) => ({ state: s.state }),
       // Fill fields added after the state was first persisted.

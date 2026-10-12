@@ -118,7 +118,7 @@ async function iosFiles(state: IconState): Promise<Files> {
           { appearances: [{ appearance: "luminosity", value: "dark" }], filename: "AppIcon-Dark.png", idiom: "universal", platform: "ios", size: "1024x1024" },
           { appearances: [{ appearance: "luminosity", value: "tinted" }], filename: "AppIcon-Tinted.png", idiom: "universal", platform: "ios", size: "1024x1024" },
         ],
-        info: { author: "icony", version: 1 },
+        info: { author: "iconpress", version: 1 },
       },
       null,
       2,
@@ -155,7 +155,7 @@ async function macosFiles(state: IconState): Promise<Files> {
       }
     }
   }
-  files["macos/AppIcon.appiconset/Contents.json"] = strToU8(JSON.stringify({ images, info: { author: "icony", version: 1 } }, null, 2));
+  files["macos/AppIcon.appiconset/Contents.json"] = strToU8(JSON.stringify({ images, info: { author: "iconpress", version: 1 } }, null, 2));
   return files;
 }
 
@@ -275,7 +275,7 @@ export async function collectFiles(state: IconState, onProgress?: (label: string
   if (p.has("web")) await add("Web", () => webFiles(state));
   if (p.has("png")) await add("PNG/SVG", () => pngFiles(state));
   // Keep uploaded images embedded so the project reopens exactly as exported.
-  files["icony.json"] = strToU8(JSON.stringify(state, null, 2));
+  files["iconpress.json"] = strToU8(JSON.stringify(state, null, 2));
   return files;
 }
 

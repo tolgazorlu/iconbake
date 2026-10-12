@@ -1,7 +1,7 @@
 import { DEFAULT_STATE, type IconState } from "./types.ts";
 
 /**
- * Turns an untrusted project object (a dropped `.icony.json`, a `state` posted to /api/export)
+ * Turns an untrusted project object (a dropped `.iconpress.json`, a `state` posted to /api/export)
  * into an IconState that is safe to render. Strings from the file end up inside SVG attributes
  * and zip entry names, so anything that could break out of those is dropped or rejected:
  *

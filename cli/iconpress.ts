@@ -1,5 +1,5 @@
-// icony CLI: search the icon library, export store-ready icon sets, serve MCP.
-// Built with `pnpm build:cli` into dist-cli/icony.js.
+// iconpress CLI: search the icon library, export store-ready icon sets, serve MCP.
+// Built with `pnpm build:cli` into dist-cli/iconpress.js.
 
 import os from "node:os";
 import path from "node:path";
@@ -50,14 +50,14 @@ function home() {
       `description: ${DESCRIPTION}`,
       `library: ${total.toLocaleString("en-US")} icons in ${sets.length} sets`,
       "help:",
-      '  icony search "<words>"                       find icon ids',
-      "  icony export --icon <id> --out <dir>         build the icon set zip",
-      "  icony mcp                                    serve these tools to an agent over MCP (stdio)",
+      '  iconpress search "<words>"                       find icon ids',
+      "  iconpress export --icon <id> --out <dir>         build the icon set zip",
+      "  iconpress mcp                                    serve these tools to an agent over MCP (stdio)",
     ],
   );
 }
 
-const SEARCH_USAGE = 'icony search "<words>" [--limit 20] [--json]';
+const SEARCH_USAGE = 'iconpress search "<words>" [--limit 20] [--json]';
 
 function searchCmd(args: string[]) {
   const { values, positionals } = guard(
@@ -73,11 +73,11 @@ function searchCmd(args: string[]) {
   const lines = [`icons: ${hits.length} of ${r.total} matches for "${query}"`];
   for (const h of hits) lines.push(`  ${h.id}  (${h.license})`);
   if (hits.length === 0) lines.push("help: names are English and literal; try a synonym (e.g. cart, basket, bag)");
-  else lines.push(`help: icony export --icon ${hits[0].id} --out <dir>`);
+  else lines.push(`help: iconpress export --icon ${hits[0].id} --out <dir>`);
   print({ query, shown: hits.length, total: r.total, results: hits }, lines);
 }
 
-const EXPORT_USAGE = "icony export (--icon <id> | --text <t> | --image <png|svg>) [--preset ink] [--background #hex] [--shape squircle] [--platforms ios,android,web] [--out <dir>] [--json]";
+const EXPORT_USAGE = "iconpress export (--icon <id> | --text <t> | --image <png|svg>) [--preset ink] [--background #hex] [--shape squircle] [--platforms ios,android,web] [--out <dir>] [--json]";
 
 async function exportCmd(args: string[]) {
   const { values, positionals } = guard(
@@ -139,7 +139,7 @@ async function exportCmd(args: string[]) {
     r = await exportIcon(lib, body, { root: ROOT, defaultOut: "." });
   } catch (e) {
     const msg = (e as Error).message;
-    if (msg.startsWith("icon not found")) throw new UsageError(msg, 'icony search "<words>"');
+    if (msg.startsWith("icon not found")) throw new UsageError(msg, 'iconpress search "<words>"');
     if (msg.startsWith("file not found")) throw new UsageError(msg, EXPORT_USAGE);
     throw e;
   }
@@ -164,7 +164,7 @@ export async function main(argv: string[]): Promise<number> {
       return 0;
     }
     if (cmd === "--help" || cmd === "-h" || cmd === "help") {
-      console.log([`icony ${VERSION}: ${DESCRIPTION}`, "", `  ${SEARCH_USAGE}`, `  ${EXPORT_USAGE}`, "  icony mcp", "  icony --version"].join("\n"));
+      console.log([`iconpress ${VERSION}: ${DESCRIPTION}`, "", `  ${SEARCH_USAGE}`, `  ${EXPORT_USAGE}`, "  iconpress mcp", "  iconpress --version"].join("\n"));
       return 0;
     }
     if (cmd === "search") return searchCmd(rest), 0;
@@ -174,7 +174,7 @@ export async function main(argv: string[]): Promise<number> {
       await runMcp();
       return -1; // keep running
     }
-    throw new UsageError(`unknown command ${cmd}`, "icony --help");
+    throw new UsageError(`unknown command ${cmd}`, "iconpress --help");
   } catch (e) {
     const help = e instanceof UsageError ? e.help : "";
     const message = (e as Error).message;

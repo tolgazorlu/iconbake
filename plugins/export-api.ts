@@ -33,7 +33,7 @@ async function loadLib(server: ViteDevServer): Promise<Lib> {
 
 export function exportApi(): Plugin {
   return {
-    name: "icony:export-api",
+    name: "iconpress:export-api",
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         const url = new URL(req.url ?? "/", "http://localhost");
