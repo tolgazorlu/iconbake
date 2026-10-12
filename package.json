@@ -1,7 +1,13 @@
 {
   "name": "icony",
-  "private": true,
   "version": "0.1.0",
+  "description": "Local app icon generator: a glyph, a background and a shape in, a store-ready iOS/Android/macOS/web icon set out. CLI, UI and MCP.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tolgazorlu/icony.git"
+  },
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
