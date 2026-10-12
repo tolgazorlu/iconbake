@@ -1,4 +1,4 @@
-# icony
+# iconpress
 
 Local app icon generator. IconKitchen's workflow plus Logofa.st's one-click looks,
 with every free icon set that Iconify packages: **238 sets, ~380,000 icons**
@@ -38,7 +38,7 @@ pnpm dev        # http://localhost:4100
   - macOS: full `AppIcon.appiconset` (16…512 @1x/@2x).
   - Web: favicon.ico (16/32/48), favicon.svg, apple-touch-icon, 192/512,
     maskable 512, `manifest.webmanifest`, HTML snippet.
-  - PNG 64…1024, composed SVG, bare glyph SVG, and `icony.json` (the project).
+  - PNG 64…1024, composed SVG, bare glyph SVG, and `iconpress.json` (the project).
 - Copy 512 PNG to clipboard (`⌘C`), save/open project JSON, undo/redo, dark
   and light UI theme, state persists in localStorage.
 
@@ -67,7 +67,7 @@ shows which file the key came from. The key is only read by the dev server.
 
 Guards: paid routes accept same-origin JSON posts or curl (no `Origin`), one run at a time, max 4
 images, no retries, a 180 s timeout that cancels the fal job, and a daily cap from
-`ICONY_DAILY_LIMIT_USD` (default 3). Every run, including failed ones that were billed, is
+`ICONPRESS_DAILY_LIMIT_USD` (default 3). Every run, including failed ones that were billed, is
 logged with its estimated cost in `.generations/history.jsonl`; images are saved next to it.
 
 ### HTTP API (dev server)
@@ -92,10 +92,10 @@ The response lists `run.items[].file` (absolute path) and `run.usd`.
 ## CLI and MCP (no browser, no dev server)
 
 ```bash
-pnpm build:cli                     # once: bundles dist-cli/icony.js
-node dist-cli/icony.js             # library size and next steps
-node dist-cli/icony.js search "shopping cart" --limit 10
-node dist-cli/icony.js export --icon mdi:barcode --preset ink --out ./assets/icon
+pnpm build:cli                     # once: bundles dist-cli/iconpress.js
+node dist-cli/iconpress.js             # library size and next steps
+node dist-cli/iconpress.js search "shopping cart" --limit 10
+node dist-cli/iconpress.js export --icon mdi:barcode --preset ink --out ./assets/icon
 ```
 
 `export` writes `<filename>-<stamp>.zip` (iOS `AppIcon.appiconset` with dark and tinted, Android
@@ -105,14 +105,14 @@ adaptive + monochrome, web favicons + manifest; add `macos` or `png` with `--pla
 exit 2 with a `help:` line. Library icons report their set's license: check sets that need
 attribution (CC BY) before shipping.
 
-`icony mcp` is a stdio MCP server. `search_icons` and `export_icon` run in-process; the paid AI
+`iconpress mcp` is a stdio MCP server. `search_icons` and `export_icon` run in-process; the paid AI
 tools (`status`, `preview_prompt`, `generate`, `refine`, `remove_background`, `history`) go to the
-dev server, which it starts itself when nothing answers on `ICONY_URL` (default
+dev server, which it starts itself when nothing answers on `ICONPRESS_URL` (default
 `http://localhost:4100`). Paid tools take a `max_usd` and refuse when the estimate is higher.
 
 ```bash
-hermes mcp add icony --command node --args /path/to/icony/dist-cli/icony.js mcp
-claude mcp add -s user icony -- node /path/to/icony/dist-cli/icony.js mcp
+hermes mcp add iconpress --command node --args /path/to/iconpress/dist-cli/iconpress.js mcp
+claude mcp add -s user iconpress -- node /path/to/iconpress/dist-cli/iconpress.js mcp
 ```
 
 The dev server keeps the same export over HTTP (`POST /api/export` with `icon`, `text`, `ai_item`

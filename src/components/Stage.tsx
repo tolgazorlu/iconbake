@@ -116,7 +116,7 @@ function IconPreview({ svg }: { svg: string }) {
 
 function IosPreview({ svg }: { svg: string }) {
   const theme = useStore((s) => s.state.theme);
-  const name = useStore((s) => s.state.appName || s.state.filename || "icony");
+  const name = useStore((s) => s.state.appName || s.state.filename || "iconpress");
   const [t, setT] = useState(() => new Date());
   useEffect(() => {
     const i = setInterval(() => setT(new Date()), 30000);

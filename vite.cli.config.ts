@@ -5,10 +5,10 @@ import { defineConfig } from "vite";
 export default defineConfig({
   publicDir: false,
   build: {
-    ssr: "cli/icony.ts",
+    ssr: "cli/iconpress.ts",
     outDir: "dist-cli",
     emptyOutDir: true,
     target: "node22",
-    rollupOptions: { output: { entryFileNames: "icony.js", banner: "#!/usr/bin/env node" } },
+    rollupOptions: { output: { entryFileNames: "iconpress.js", banner: "#!/usr/bin/env node" } },
   },
 });

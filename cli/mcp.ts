@@ -1,7 +1,7 @@
-// Icony MCP server (stdio), started by `icony mcp`.
-// Free tools (search, export) run in-process. Paid AI tools are a thin client of the Icony dev
+// Iconpress MCP server (stdio), started by `iconpress mcp`.
+// Free tools (search, export) run in-process. Paid AI tools are a thin client of the Iconpress dev
 // server: every guard (fal key, origin check, daily cap, single run) stays in the Vite plugins.
-// Starts `vite` in the background when a paid tool needs it and nothing answers on ICONY_URL.
+// Starts `vite` in the background when a paid tool needs it and nothing answers on ICONPRESS_URL.
 
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -16,7 +16,7 @@ import { lib } from "./lib.ts";
 import pkg from "../package.json" with { type: "json" };
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const BASE = (process.env.ICONY_URL ?? "http://localhost:4100").replace(/\/$/, "");
+const BASE = (process.env.ICONPRESS_URL ?? "http://localhost:4100").replace(/\/$/, "");
 
 type Json = Record<string, unknown>;
 
@@ -41,7 +41,7 @@ async function ensureServer() {
       await new Promise((r) => setTimeout(r, 500));
       if (await alive()) return;
     }
-    throw new Error(`Icony dev server did not start on ${BASE}`);
+    throw new Error(`Iconpress dev server did not start on ${BASE}`);
   })();
   try {
     await starting;
@@ -84,13 +84,13 @@ const STYLE_IDS = ["monolith", "porcelain", "glass", "toy", "clay", "painterly",
 const MODEL_IDS = ["draft", "gpt", "nb2", "nbpro", "vector"] as const;
 
 export async function runMcp() {
-const server = new McpServer({ name: "icony", version: pkg.version });
+const server = new McpServer({ name: "iconpress", version: pkg.version });
 
 server.registerTool(
   "status",
   {
     description:
-      "Icony state: whether a fal key is configured and which file it comes from, money spent today/total vs the daily cap, the AI models with $/image and the AI styles. Free. Call this before any paid tool.",
+      "Iconpress state: whether a fal key is configured and which file it comes from, money spent today/total vs the daily cap, the AI models with $/image and the AI styles. Free. Call this before any paid tool.",
     inputSchema: {},
   },
   tool(async () => {
@@ -117,7 +117,7 @@ server.registerTool(
 const genShape = {
   subject: z.string().min(2).max(600).describe("One concrete object, optionally one action. e.g. 'an A-frame bungalow with a glowing glass front'"),
   style: z.enum(STYLE_IDS).default("monolith"),
-  mode: z.enum(["full", "glyph"]).default("full").describe("full: artwork fills the icon. glyph: one object on transparent, placed on an Icony background (best for Android themed / iOS tinted)."),
+  mode: z.enum(["full", "glyph"]).default("full").describe("full: artwork fills the icon. glyph: one object on transparent, placed on an Iconpress background (best for Android themed / iOS tinted)."),
   model: z.enum(MODEL_IDS).default("nb2"),
   n: z.number().int().min(1).max(4).default(2),
   palette: z.enum(["auto", "neutral", "brand"]).default("auto"),
@@ -226,7 +226,7 @@ server.registerTool(
       filename: z.string().default("ic_launcher"),
       app_name: z.string().optional(),
       badge: z.string().max(8).optional(),
-      out_dir: z.string().optional().describe("Default: icony/.generations/exports"),
+      out_dir: z.string().optional().describe("Default: iconpress/.generations/exports"),
     },
   },
   tool(async (a: Json) => exportIcon(lib, a as ExportBody, { root: ROOT, defaultOut: path.join(ROOT, ".generations", "exports") })),

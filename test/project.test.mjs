@@ -63,7 +63,7 @@ test("prototype keys are ignored", () => {
 });
 
 test("confine keeps HTTP paths inside the root", () => {
-  const root = path.resolve("/tmp/icony-root");
+  const root = path.resolve("/tmp/iconpress-root");
   assert.equal(confine(root, "exports/a.zip", "out_dir"), path.join(root, "exports/a.zip"));
   assert.equal(confine(root, root, "out_dir"), root);
   for (const p of ["../x", "/etc/passwd", root + "-other/x", "exports/../../x"]) assert.throws(() => confine(root, p, "out_dir"), /must stay inside/, p);

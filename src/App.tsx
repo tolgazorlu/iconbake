@@ -18,7 +18,7 @@ const PANELS: { id: Panel; label: string; icon: React.ReactNode }[] = [
   { id: "export", label: "Export", icon: Icons.box },
 ];
 
-const PANEL_KEY = "icony:panel";
+const PANEL_KEY = "iconpress:panel";
 
 export default function App() {
   const state = useStore((s) => s.state);
@@ -55,7 +55,7 @@ export default function App() {
     if (busy) return;
     try {
       const blob = await buildZip(state, (l) => setBusy(l));
-      downloadBlob(blob, `${state.filename || "icon"}-icony.zip`);
+      downloadBlob(blob, `${state.filename || "icon"}-iconpress.zip`);
       flash("Zip downloaded");
     } catch (e) {
       flash(`Export failed: ${(e as Error).message}`);
@@ -99,7 +99,7 @@ export default function App() {
 
   const saveProject = () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-    downloadBlob(blob, `${state.filename || "icon"}.icony.json`);
+    downloadBlob(blob, `${state.filename || "icon"}.iconpress.json`);
   };
 
   const loadProject = (f: File | undefined) => {
@@ -124,7 +124,7 @@ export default function App() {
   return (
     <div className="app">
       <nav className="rail" aria-label="Tools">
-        <div className="rail-mark" aria-label="icony">
+        <div className="rail-mark" aria-label="iconpress">
           {Icons.logo}
         </div>
         {PANELS.map((p) => (

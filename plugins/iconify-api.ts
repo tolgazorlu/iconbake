@@ -13,7 +13,7 @@ function send(res: any, status: number, body: unknown) {
 
 export function iconifyApi(): Plugin {
   return {
-    name: "icony:iconify-api",
+    name: "iconpress:iconify-api",
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const url = new URL(req.url ?? "/", "http://localhost");
