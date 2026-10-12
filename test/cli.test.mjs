@@ -1,4 +1,4 @@
-// End-to-end tests: drive the built CLI (dist-cli/iconpress.js) the way a script or agent does.
+// End-to-end tests: drive the built CLI (dist-cli/iconbake.js) the way a script or agent does.
 // Run with `pnpm test` (builds first).
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -8,19 +8,19 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const BIN = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../dist-cli/iconpress.js");
+const BIN = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../dist-cli/iconbake.js");
 const run = (...args) => {
   const r = spawnSync(process.execPath, [BIN, ...args], { encoding: "utf8" });
   return { out: r.stdout, code: r.status };
 };
-const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), "iconpress-test-"));
+const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), "iconbake-test-"));
 
 test("home view shows the library and next steps", () => {
   const { out, code } = run();
   assert.equal(code, 0);
   assert.match(out, /^bin: /m);
   assert.match(out, /library: [\d,]+ icons in \d+ sets/);
-  assert.match(out, /iconpress export --icon/);
+  assert.match(out, /iconbake export --icon/);
 });
 
 test("version is bare", () => {
@@ -79,8 +79,8 @@ test("usage errors exit 2 with a help line", () => {
 
 test("mcp serves search and export in-process, without the dev server", async () => {
   const dir = tmp();
-  // A dead ICONPRESS_URL proves the free tools never call the dev server.
-  const child = spawn(process.execPath, [BIN, "mcp"], { env: { ...process.env, ICONPRESS_URL: "http://127.0.0.1:9" } });
+  // A dead ICONBAKE_URL proves the free tools never call the dev server.
+  const child = spawn(process.execPath, [BIN, "mcp"], { env: { ...process.env, ICONBAKE_URL: "http://127.0.0.1:9" } });
   const replies = new Map();
   let buf = "";
   child.stdout.on("data", (d) => {
@@ -99,7 +99,7 @@ test("mcp serves search and export in-process, without the dev server", async ()
   };
   try {
     send({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "test", version: "1" } } });
-    assert.equal((await wait(1)).result.serverInfo.name, "iconpress");
+    assert.equal((await wait(1)).result.serverInfo.name, "iconbake");
     send({ jsonrpc: "2.0", method: "notifications/initialized" });
     send({ jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "search_icons", arguments: { query: "barcode", limit: 3 } } });
     const s = JSON.parse((await wait(2)).result.content[0].text);
