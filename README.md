@@ -8,6 +8,11 @@ Carbon, Remix, Font Awesome, Simple Icons, Noto/Twemoji/Fluent emoji, logos, …
 Everything runs locally. Icons are served from `node_modules/@iconify/json` by a
 Vite dev-server middleware; nothing leaves your machine.
 
+Hosted demo: **https://iconpress.vercel.app** is the same UI built statically with
+`VITE_ICONIFY_API=https://api.iconify.design` (icons come from the public Iconify API,
+export still runs in your browser, the paid AI panel is hidden). Deploy your own the same
+way; `VITE_CLARITY_ID` optionally adds Microsoft Clarity analytics to that build.
+
 ## Run
 
 ```bash

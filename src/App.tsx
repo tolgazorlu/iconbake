@@ -5,12 +5,14 @@ import { Stage } from "./components/Stage";
 import { Icons, RailButton } from "./components/ui";
 import { buildZip, copyPng, downloadBlob, downloadSingle } from "./lib/export";
 import { useStore } from "./lib/store";
+import { STATIC } from "./lib/api";
 import { sanitizeProject } from "./lib/project";
 
 type Panel = "generate" | "library" | "text" | "upload" | "style" | "export";
 
 const PANELS: { id: Panel; label: string; icon: React.ReactNode }[] = [
-  { id: "generate", label: "Generate with AI", icon: Icons.brush },
+  // The AI panel needs the local dev server (fal key, spend cap); the static deployment has none.
+  ...(STATIC ? [] : [{ id: "generate" as Panel, label: "Generate with AI", icon: Icons.brush }]),
   { id: "library", label: "Icon library", icon: Icons.library },
   { id: "text", label: "Text", icon: Icons.text },
   { id: "upload", label: "Upload", icon: Icons.upload },
