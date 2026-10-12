@@ -5,7 +5,7 @@ import { Stage } from "./components/Stage";
 import { Icons, RailButton } from "./components/ui";
 import { buildZip, copyPng, downloadBlob, downloadSingle } from "./lib/export";
 import { useStore } from "./lib/store";
-import { DEFAULT_STATE, type IconState } from "./lib/types";
+import { sanitizeProject } from "./lib/project";
 
 type Panel = "generate" | "library" | "text" | "upload" | "style" | "export";
 
@@ -106,9 +106,9 @@ export default function App() {
     if (!f) return;
     f.text().then((t) => {
       try {
-        const s = JSON.parse(t) as IconState;
-        if (s && s.fg && s.bg) {
-          replace({ ...DEFAULT_STATE, ...s });
+        const s = sanitizeProject(JSON.parse(t));
+        if (s) {
+          replace(s);
           // Older exports stripped uploaded images from the project file.
           const missing = (s.fg.source.kind === "image" && !s.fg.source.dataUrl) || (s.bg.type === "image" && !s.bg.image?.dataUrl);
           flash(missing ? "Project loaded, but its uploaded image is missing: upload it again" : "Project loaded");
